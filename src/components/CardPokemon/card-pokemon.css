@@ -1,0 +1,6 @@
+.card-title{
+    text-transform: capitalize;
+}
+.card-body {
+    border-top: solid rgba(0,0, 0, .1) 1px;
+}
