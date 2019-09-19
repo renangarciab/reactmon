@@ -3,38 +3,38 @@ import { Container, Row, Col, Jumbotron } from 'reactstrap';
 import { Card, CardHeader, CardBody, CardText, CardColumns } from 'reactstrap';  
 import CardPokemon from '../../components/CardPokemon';
 
-export default class Home extends Component {
-    constructor() {
-        super()
+import { connect } from 'react-redux';
+import { itemsFetchData } from '../../actions/PokemonsActions';
 
-        this.state = {
-            pokemon: '',
-            pokemons: [],
-            pokemonActive: []
-        }
-    }
-    
-    componentDidMount() {
-        fetch(`https://pokeapi.co/api/v2/pokemon/`)
-            .then((serverRespond) => serverRespond.json())
-            .then((pokemonsFromServer) => {
-                this.setState({
-                    pokemons: pokemonsFromServer.results
-                })            
-            })
+import ProtoType from 'prop-types'
+
+class Home extends Component {
+   
+    componentDidMount() { 
+
+        this.props.fetchData('https://pokeapi.co/api/v2/pokemon/');
     }
 
     pokemonFavorited = (pokemonIdFavorited) => {
-        const pokemonFavorited = this.state.pokemons.find((pokemon) => {            
+        
+        const pokemonFavorited = this.props.pokemons.find((pokemon) => {                        
             return pokemon.name === pokemonIdFavorited
         })
         
-        this.setState({
-            pokemonActive: [{name:pokemonFavorited.name} , ...this.state.pokemonActive]
-        })
-    } 
+         this.setState({
+            pokemonActive: [{name:pokemonFavorited.name} , ...this.props.pokemonActive]
+         })
+    }     
 
     render() {
+
+        if (this.props.hasErrored) {
+            return <p>Sorry! There was an error loading the items</p>;
+        }
+
+        if (this.props.isLoading) {
+            return <p>Loading…</p>;
+        }
       return ( 
           
         <Fragment>
@@ -49,20 +49,19 @@ export default class Home extends Component {
                             <CardHeader>Favorites</CardHeader>
                             <CardBody>
                             {
-                                this.state.pokemonActive.length < 11 &&
-                                this.state.pokemonActive.map((pokemon, indice) => {
+                                this.props.pokemonActive.length < 11 &&
+                                this.props.pokemonActive.map((pokemon, indice) => {
                                     
                                     return <CardText key={indice}>{pokemon.name}</CardText>                                
-                                })                               
+                                 })                               
                             }
                             </CardBody>
                         </Card>            
                     </Col>
                     <Col xl="9" md="8" sm="12">
                         <CardColumns>
-                            {                                                                     
-                                this.state.pokemons.length > 0 ?
-                                    this.state.pokemons.map((pokemon, indice) => {
+                            {                                       
+                                    this.props.pokemons.map((pokemon, indice) => {
                                         return <CardPokemon 
                                         id = {indice + 1}
                                         key={indice}
@@ -70,8 +69,7 @@ export default class Home extends Component {
                                         name={pokemon.name} 
                                         photo={pokemon.sprites}
                                         pokemonFavoriteHandler={() => {this.pokemonFavorited(pokemon.name)}}/>
-                                    })
-                                : <p>Wait</p>                         
+                                    })                        
                                 
                             }
                         </CardColumns>                                                                  
@@ -82,3 +80,21 @@ export default class Home extends Component {
         );
     }
 }
+
+const mapStateToProps = (state) => {
+    return {
+        pokemons: state.items,
+        pokemon: '',
+        pokemonActive: [],
+        hasErrored: state.itemsHasErrored,
+        isLoading: state.itemsIsLoading
+    };
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        fetchData: (url) => dispatch(itemsFetchData(url))
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
