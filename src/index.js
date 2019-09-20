@@ -8,9 +8,7 @@ import Routes from './routes.js';
 import { BrowserRouter } from 'react-router-dom'
 
 import { Provider } from 'react-redux';
-import configureStore from './store/configureStore';
-
-const store = configureStore()
+import store from './store';
 
 
 ReactDOM.render(
